@@ -5,13 +5,12 @@ package br.com.devsource.gs1;
  */
 public final class AiFactory {
 
-  public static AI create(String code, String description, String title, String format) {
-    return new AI() {
+  private AiFactory() {
+    super();
+  }
 
-      @Override
-      public String getTitle() {
-        return title;
-      }
+  public static AI create(String code, String description, String format) {
+    return new AI() {
 
       @Override
       public String getFormat() {
@@ -27,12 +26,6 @@ public final class AiFactory {
       public String getCode() {
         return code;
       }
-
-      @Override
-      public String toString() {
-        return description;
-      }
-
     };
   }
 

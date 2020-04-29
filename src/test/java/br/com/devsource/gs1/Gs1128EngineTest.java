@@ -4,10 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author guilherme.pacheco
@@ -16,7 +15,7 @@ public class Gs1128EngineTest {
 
   private Gs1128Engine engine;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     engine = new Gs1128Engine();
   }
@@ -39,10 +38,9 @@ public class Gs1128EngineTest {
 
   @Test
   public void testRegisterAi() throws Exception {
-    engine.registerAi("422", "País de processamento", "COUNTRY - PROCESS", "n3+n3");
+    engine.registerAi(AiFactory.create("422", "País de processamento", "n3+n3"));
 
-    Stream<AI> stream = engine.getAisRegistred().stream();
-    List<String> codes = stream.map(AI::getCode).collect(Collectors.toList());
+    List<String> codes = engine.getAisRegistred().stream().map(AI::getCode).collect(Collectors.toList());
 
     assertThat(codes).contains("422");
   }

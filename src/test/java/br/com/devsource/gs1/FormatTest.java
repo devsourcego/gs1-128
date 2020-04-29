@@ -2,12 +2,18 @@ package br.com.devsource.gs1;
 
 import static br.com.devsource.gs1.Session.valueOf;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
-import org.junit.Test;
+import java.util.List;
+import java.util.stream.Stream;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
- * @author Guilherme Pacheco
+ * @author guilherme.pacheco
  */
 public class FormatTest {
 
@@ -29,116 +35,76 @@ public class FormatTest {
   public void testValueOf() throws Exception {
     Format format = Format.valueOf("n2+n16");
 
-    assertThat(format.getIdentifier().toString()).hasToString("n2");
+    assertThat(format.getIdentifier()).hasToString("n2");
     assertThat(format.getDataSessions()).extracting(a -> a.toString()).contains("n16");
   }
 
-  @Test
-  public void testIsVaried() throws Exception {
-    assertTrue(Format.valueOf("n2+n..16").isVaried());
+  @ParameterizedTest
+  @MethodSource("isVariedProvider")
+  public void testIsVaried(String source, boolean varied) throws Exception {
+    assertThat(Format.valueOf(source).isVaried()).isEqualTo(varied);
   }
 
-  @Test
-  public void testIsVaried_NaoVariadoUmCampo() throws Exception {
-    assertFalse(Format.valueOf("n2+n16").isVaried());
+  static Stream<Arguments> isVariedProvider() {
+    return Stream.of(
+      arguments("n2+n16", false),
+      arguments("n2+n..16", true),
+      arguments("n2+n16+n..3", true));
   }
 
-  @Test
-  public void testIsVaried_NaoVariadoVariosCampo() throws Exception {
-    assertTrue(Format.valueOf("n2+n16+n..3").isVaried());
+  @ParameterizedTest
+  @MethodSource("getLengthProvider")
+  public void testGetLength(String source, int length) throws Exception {
+    Format format = Format.valueOf(source);
+
+    assertThat(format.getLength()).isEqualTo(length);
   }
 
-  @Test
-  public void testGetLength() throws Exception {
-    Format format = Format.valueOf("n2+n16");
-
-    assertThat(format.getLength()).isEqualTo(16);
+  static Stream<Arguments> getLengthProvider() {
+    return Stream.of(
+      arguments("n2+n16", 16),
+      arguments("n2+n3+an4", 7));
   }
 
-  @Test
-  public void testGetLength_VariosSegumentos() throws Exception {
-    Format format = Format.valueOf("n2+n3+an4");
+  @ParameterizedTest
+  @MethodSource("isValidProvider")
+  public void testIsValid(String source, String value, boolean valid) throws Exception {
+    Format format = Format.valueOf(source);
 
-    assertThat(format.getLength()).isEqualTo(7);
+    assertThat(format.isValid(value)).isEqualTo(valid);
   }
 
-  @Test
-  public void testIsValid_TamanhoFixoMenor() throws Exception {
-    Format format = Format.valueOf("n2+n4");
-
-    assertThat(format.isValid("123")).isFalse();
+  static Stream<Arguments> isValidProvider() {
+    return Stream.of(
+      arguments("n2+n4", "", false),
+      arguments("n2+n4", null, false),
+      arguments("n2+n4", "123", false),
+      arguments("n2+n4", "1234", true),
+      arguments("n2+n4", "12345", false),
+      arguments("n2+n..5", "1234", true),
+      arguments("n2+n..5", "12345", true),
+      arguments("n2+n..5", "123456", false),
+      arguments("n2+n3", "12a", false),
+      arguments("n2+a3", "ab1", false),
+      arguments("n2+a3", "abc", true),
+      arguments("n2+an3", "a1#", false),
+      arguments("n2+an3", "a1c", true),
+      arguments("n2+an..4", "a1c", true));
   }
 
-  @Test
-  public void testIsValid_TamanhoFixoIgual() throws Exception {
-    Format format = Format.valueOf("n2+n4");
+  @ParameterizedTest
+  @MethodSource("getDataSessionsProvider")
+  public void testGetDataSessions(String source, List<String> sessions) throws Exception {
+    Format format = Format.valueOf(source);
 
-    assertThat(format.isValid("1234")).isTrue();
+    assertThat(format.getDataSessions()).extracting(a -> a.toString()).containsExactlyElementsOf(sessions);
   }
 
-  @Test
-  public void testIsValid_TamanhoFixoMaior() throws Exception {
-    Format format = Format.valueOf("n2+n4");
-
-    assertThat(format.isValid("12345")).isFalse();
-  }
-
-  @Test
-  public void testIsValid_TamanhoVariadoMenorAoMaximo() throws Exception {
-    Format format = Format.valueOf("n2+n..5");
-
-    assertThat(format.isValid("1234")).isTrue();
-  }
-
-  @Test
-  public void testIsValid_TamanhoVariadoIgualAoMaximo() throws Exception {
-    Format format = Format.valueOf("n2+n..5");
-
-    assertThat(format.isValid("12345")).isTrue();
-  }
-
-  @Test
-  public void testIsValid_TamanhoVariadoMaiorMaximo() throws Exception {
-    Format format = Format.valueOf("n2+n..5");
-
-    assertThat(format.isValid("123456")).isFalse();
-  }
-
-  @Test
-  public void testIsValid_DadosNumericosInvalidos() throws Exception {
-    Format format = Format.valueOf("n2+n3");
-
-    assertThat(format.isValid("12a")).isFalse();
-  }
-
-  @Test
-  public void testIsValid_AlfabeticosInvalidos() throws Exception {
-    Format format = Format.valueOf("n2+a3");
-
-    assertThat(format.isValid("ab1")).isFalse();
-  }
-
-  @Test
-  public void testIsValid_AlfanumericosValido() throws Exception {
-    Format format = Format.valueOf("n2+an3");
-
-    assertThat(format.isValid("a1#")).isFalse();
-  }
-
-  @Test
-  public void testGetDataSessions() throws Exception {
-    Format format = Format.valueOf("n2+an3");
-
-    assertThat(format.getDataSessions()).hasSize(1);
-    assertThat(format.getDataSessions()).extracting(a -> a.toString()).contains("an3");
-  }
-
-  @Test
-  public void testGetDataSessions_ManyDataSessions() throws Exception {
-    Format format = Format.valueOf("n2+an3+n3");
-
-    assertThat(format.getDataSessions()).hasSize(2);
-    assertThat(format.getDataSessions()).extracting(a -> a.toString()).contains("an3", "n3");
+  static Stream<Arguments> getDataSessionsProvider() {
+    return Stream.of(
+      arguments("n2+n16", List.of("n16")),
+      arguments("n2+n4+n..10", List.of("n4", "n..10")),
+      arguments("n2+an3+n3", List.of("an3", "n3")));
   }
 
 }

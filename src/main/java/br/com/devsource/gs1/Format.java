@@ -2,7 +2,6 @@ package br.com.devsource.gs1;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -13,11 +12,11 @@ import org.apache.commons.lang3.Validate;
  */
 final class Format {
 
-  private List<Session> sessions;
+  private static final String JOIN_SYMBOL = "+";
+  private final List<Session> sessions;
 
   public Format(List<Session> sessions) {
-    Validate.notEmpty(sessions);
-    this.sessions = sessions;
+    this.sessions = Validate.notEmpty(sessions);
   }
 
   public Format(Session... sessions) {
@@ -34,7 +33,7 @@ final class Format {
 
   @Override
   public String toString() {
-    return sessions.stream().map(Object::toString).collect(Collectors.joining("+"));
+    return sessions.stream().map(String::valueOf).collect(Collectors.joining(JOIN_SYMBOL));
   }
 
   public boolean isValid(String value) {
@@ -48,16 +47,11 @@ final class Format {
   }
 
   private boolean validate(String value) {
-    Predicate<Session> valid = s -> s.getSessionType().validate(Gs1128Utils.value(s, value));
-    return getDataSessions().stream().allMatch(valid);
+    return getDataSessions().stream().allMatch(s -> s.getType().isValid(Gs1128Utils.value(s, value)));
   }
 
   private boolean validLength(String value) {
-    if (isVaried()) {
-      return value.length() <= getLength();
-    } else {
-      return value.length() == getLength();
-    }
+    return isVaried() ? value.length() <= getLength() : value.length() == getLength();
   }
 
   public int getLength() {
@@ -69,7 +63,7 @@ final class Format {
   }
 
   public static Format valueOf(String value) {
-    String[] split = StringUtils.split(value, "+");
+    String[] split = StringUtils.split(value, JOIN_SYMBOL);
     List<Session> list = Arrays.stream(split).map(Session::valueOf).collect(Collectors.toList());
     return new Format(list);
   }

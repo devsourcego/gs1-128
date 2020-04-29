@@ -24,25 +24,12 @@ public final class Segment {
     return value;
   }
 
-  public AI getAi() {
-    return ai;
-  }
-
-  public String getValue() {
-    return value;
-  }
-
   String encode() {
     String codeValue = ai.getCode().concat(value);
     if (format.isVaried()) {
       return codeValue + Gs1128Utils.END_AI_VARIED;
     }
     return codeValue;
-  }
-
-  @Override
-  public String toString() {
-    return String.format("Segment [ai=%s, value=%s]", ai, value);
   }
 
 }

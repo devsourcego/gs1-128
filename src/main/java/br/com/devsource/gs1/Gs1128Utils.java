@@ -1,27 +1,21 @@
 package br.com.devsource.gs1;
 
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 
 /**
  * @author guilherme.pacheco
  */
 final class Gs1128Utils {
 
-  static final String PREFIX = "]C1";
-  static final char END_AI_VARIED = (char) 29;
+  public static final String PREFIX = "]C1";
+  public static final char END_AI_VARIED = (char) 29;
 
   private Gs1128Utils() {
     super();
   }
 
   public static Iterator<Character> iterator(String value) {
-    List<Character> list = new ArrayList<>(value.length());
-    for (char c : value.toCharArray()) {
-      list.add(c);
-    }
-    return list.iterator();
+    return value.chars().mapToObj(c -> (char) c).iterator();
   }
 
   public static String value(AI ai, Iterator<Character> iterator) {
@@ -33,8 +27,8 @@ final class Gs1128Utils {
     }
   }
 
-  public static String value(Session session, String string) {
-    Iterator<Character> iterator = iterator(string);
+  public static String value(Session session, String value) {
+    Iterator<Character> iterator = iterator(value);
     if (session.isVaried()) {
       return variedValue(iterator);
     } else {

@@ -9,8 +9,6 @@ public interface AI {
 
   String getDescription();
 
-  String getTitle();
-
   String getFormat();
 
 }

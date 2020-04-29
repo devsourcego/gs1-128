@@ -1,9 +1,8 @@
 package br.com.devsource.gs1;
 
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -11,23 +10,18 @@ import java.util.Set;
  */
 public final class Gs1128Engine {
 
-  private Set<AI> aisRegistred;
+  private final Set<AI> aisRegistred = new HashSet<>();
 
-  Gs1128Engine() {
-    aisRegistred = new HashSet<>();
-    aisRegistred.addAll(Arrays.asList(AIs.values()));
+  public Gs1128Engine() {
+    aisRegistred.addAll(EnumSet.allOf(AIs.class));
   }
 
   public void registerAi(AI ai) {
     aisRegistred.add(ai);
   }
 
-  public void registerAi(String code, String title, String description, String format) {
-    aisRegistred.add(AiFactory.create(code, title, description, format));
-  }
-
-  public List<AI> getAisRegistred() {
-    return new ArrayList<>(aisRegistred);
+  public Set<AI> getAisRegistred() {
+    return Collections.unmodifiableSet(aisRegistred);
   }
 
   public Gs1128Encoder encoder() {
